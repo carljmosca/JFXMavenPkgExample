@@ -1,0 +1,198 @@
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.github</groupId>
+    <artifactId>JFXMavenPkgExample</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <name>JFXMavenPkgExample</name>
+    <url>http://github.com</url>
+    <developers>
+
+    </developers>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <javafx.version>2.2</javafx.version>
+        <exec.mainClass>com.github.jfxmavenpkgexample.App</exec.mainClass>
+    </properties>
+    <repositories>
+        <repository>
+            <id>maven2-repository.dev.java.net</id>
+            <name>Java.net Repository for Maven</name>
+            <url>http://download.java.net/maven/2/</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+
+        <pluginRepository>
+            <id>maven2-repository.dev.java.net</id>
+            <name>Java.net Repository for Maven</name>
+            <url>http://download.java.net/maven/2/</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <!-- copy all dependencies of your app to target folder-->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>false</overWriteSnapshots>
+                            <overWriteIfNewer>true</overWriteIfNewer>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                        </configuration>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/jar-with-dependencies.xml</descriptor>
+                    </descriptors>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>${exec.mainClass}</mainClass>
+                            <classpathLayoutType>repository</classpathLayoutType>
+                        </manifest> 
+                        <manifestEntries>
+                            <JavaFX-Application-Class>${exec.mainClass}</JavaFX-Application-Class>
+                            <Main-Class>${exec.mainClass}</Main-Class>
+                            <JavaFX-Version>${javafx.version}+</JavaFX-Version>
+                            <implementation-version>1.0</implementation-version>
+                            <!--                            <JavaFX-Class-Path>
+                            </JavaFX-Class-Path> -->
+                            <!-- The artifactId (name) of the jfxrt.jar ... see dependency system scope--> 
+                            <Class-Path>javafx-${javafx.version}.jar</Class-Path>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <!-- define the deploy ANT task-->
+                                <taskdef name="jfxdeploy" 
+                                         classname="com.sun.javafx.tools.ant.DeployFXTask"
+                                         classpathref="maven.plugin.classpath" />
+                                <!-- define the JarSing ANT task-->
+                                <taskdef name="jfxsignjar" 
+                                         classname="com.sun.javafx.tools.ant.FXSignJarTask"
+                                         classpathref="maven.plugin.classpath" />
+
+                                <jfxdeploy width="1024" height="768"
+                                           outdir="${project.build.directory}/deploy" 
+                                           outfile="${project.build.finalName}"
+                                           nativeBundles="all">
+                                    <info title="${project.name}" />
+                                    <application name="${project.name}" mainClass="${exec.mainClass}" />
+                                    <resources>
+                                        <fileset dir="${project.build.directory}" includes="*.jar" />
+<!--                                        <fileset dir="${project.build.directory}/dependency"
+                                                 includes="*.jar" />-->
+                                    </resources>
+                                    <!-- set your jvm args-->
+                                    <platform javafx="${javafx.version}+">
+                                        <jvmarg value="-Xms512m" />
+                                        <jvmarg value="-Xmx1024m" />
+                                    </platform>
+                                </jfxdeploy>
+
+                                <!-- you need to generate a key yourself -->
+                                <jfxsignjar destdir="${project.build.directory}/deploy"
+                                            keyStore="${user.home}/keystore/javafx.ks" 
+                                            storePass="password" alias="javafx"
+                                            keyPass="password" >
+                                    <fileset dir="${project.build.directory}/deploy"
+                                             includes="*.jar" />
+                                </jfxsignjar>
+
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.oracle</groupId>
+                        <artifactId>ant-javafx</artifactId>
+                        <version>${javafx.version}</version>
+                        <systemPath>${java.home}/../lib/ant-javafx.jar</systemPath>
+                        <scope>system</scope>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.oracle</groupId>
+                        <artifactId>javafx</artifactId>
+                        <version>${javafx.version}</version>
+                        <systemPath>${java.home}/lib/jfxrt.jar</systemPath>
+                        <scope>system</scope>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+        <finalName>JFXMavenPkgExample</finalName>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>javafx</artifactId>
+            <version>${javafx.version}</version>
+            <systemPath>${java.home}/lib/jfxrt.jar</systemPath>
+            <scope>system</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
+
