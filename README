@@ -1,3 +1,11 @@
 This is an example JavaFX application which utilizes FXML, is in maven format, and includes packaging via the javafxpackager.
 
-Java 1.7.0_06
+Required:
+ 
+Java 1.7.0_06+
+a file generated with keytool named javafx.ks in a directory named keystore which should be located in the users home directory
+
+Example creation: 
+
+keytool -genkey -keystore javafx.ks -alias javafx
+keytool -selfcert -alias javafx -keystore javafx.ks
