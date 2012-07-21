@@ -2,10 +2,23 @@ This is an example JavaFX application which utilizes FXML, is in maven format, a
 
 Required:
  
-Java 1.7.0_06+
-a file generated with keytool named javafx.ks in a directory named keystore which should be located in the users home directory
+ - Java 1.7.0_06+
+ - a file generated with keytool named javafx.ks in a directory named keystore which should be located in the users home directory
 
-Example creation: 
+    Example creation:
 
-keytool -genkey -keystore javafx.ks -alias javafx
-keytool -selfcert -alias javafx -keystore javafx.ks
+        keytool -genkey -keystore javafx.ks -alias javafx
+        keytool -selfcert -alias javafx -keystore javafx.ks
+
+Notes:
+
+The better part of this example came from Andy Moncsek's demo pom file.
+The primary issue I ran into, was getting the example to run/debug from
+within my IDE, in this case NetBeans 7.2-rc1.  I thought it was a maven issue
+until I realized the example runs from the command line after a successful build
+from the IDE or command line.  Next I thought it was a NetBeans issue.  Ultimately
+I realized NetBeans could not find the JavaFX runtime when it launches the program.
+I solved it by adding a symbolic link to jfxrt.jar in the extensions directory.
+
+on OS X from /Library/Java/Extensions
+ln -s /Library/Java/JavaVirtualMachines/jdk1.7/Contents/Home/jre/lib/jfxrt.jar .
