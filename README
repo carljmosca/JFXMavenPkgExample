@@ -2,7 +2,7 @@ This is an example JavaFX application which utilizes FXML, is in maven format, a
 
 Required:
  
- - Java 1.7.0_06+
+ - Java 1.7.0_06+ (currently pre-release but required for javafxpackager if using Java 7)
  - a file generated with keytool named javafx.ks in a directory named keystore which should be located in the users home directory
 
     Example creation:
